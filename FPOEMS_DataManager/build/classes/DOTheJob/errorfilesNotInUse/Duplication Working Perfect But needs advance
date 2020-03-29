@@ -1,0 +1,90 @@
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package DOTheJob.PopMaker;
+
+import DBConnector.MyDbDriverConnector;
+import DOTheJob.ImportDBModel.DBModelForCBT;
+import static DOTheJob.PopMaker.InstructionForPOPImport.getTablename;
+import static DOTheJob.PopMaker.InstructionForPOPImport.importedDBname;
+import static DOTheJob.PopMaker.popMakeClassForNoneClassField.executeQuery;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+/**
+ *
+ * @author Martins
+ */
+public class DuplicatPOPVenue {
+    
+           static   ObservableList<String> duplicatPOPVenueArray =  FXCollections.observableArrayList();
+           
+            static ObservableList<Integer> specialLoopOrderPrimaryRealRowIdForExceptionCase =PopSpecialExceptionForVenueBaseOnNoOfDeptPerClass.listDataloader();
+
+
+           static    Statement stmt;
+   static  ResultSet executeQuery ;
+    public static  ObservableList<String> myDuplicatPOPVenue(String tablename,int totalNoOfClassFromTextField){
+    
+    
+        String querryPopVenueToBeDuplicated =   "select * from "+tablename+" where field14 != 'null' and field14 != \"VENUE\"";
+                      
+                            MyDbDriverConnector myDbDriverConnector = new  MyDbDriverConnector();
+                           myDbDriverConnector.setDatabasename(importedDBname);
+                          stmt =  myDbDriverConnector.DBDriverStatementLoader();
+                  try {
+                      executeQuery =  stmt.executeQuery(querryPopVenueToBeDuplicated);
+                  } catch (SQLException ex) {
+                      Logger.getLogger(DuplicatPOPVenue.class.getName()).log(Level.SEVERE, null, ex);
+                  }
+   
+                  
+                  try {
+                      while(executeQuery.next()){
+                          
+                          
+                          
+                          String venue =executeQuery.getString("field14");
+               
+                          Integer realRowIdPrimaryKey  =    executeQuery.getInt("RealRowIdPrimaryKey");
+
+                  if(specialLoopOrderPrimaryRealRowIdForExceptionCase.contains(realRowIdPrimaryKey)){        
+                     int index =     specialLoopOrderPrimaryRealRowIdForExceptionCase.indexOf(realRowIdPrimaryKey);
+                              Integer noofloopforspecialRows = PopSpecialExceptionForVenueBaseOnNoOfDeptPerClass.exceptionHolderforRealRoIdNoOfLoop.get(index);
+                     
+                     for(int a =0; a<noofloopforspecialRows;a++){
+                              duplicatPOPVenueArray.add(venue);
+                              System.out.println(venue);
+                          }
+                           System.out.println("");
+                          
+                      }
+                  
+                  else{
+                   for(int a =0; a<totalNoOfClassFromTextField;a++){
+                              duplicatPOPVenueArray.add(venue);
+                              System.out.println(venue);
+                          }
+                           System.out.println("");
+                  
+                  
+                  }
+                  
+                  
+                  
+                      }
+                  } catch (SQLException ex) {
+                      Logger.getLogger(DuplicatPOPVenue.class.getName()).log(Level.SEVERE, null, ex);
+                  }
+                  
+    return duplicatPOPVenueArray;
+    }
+}

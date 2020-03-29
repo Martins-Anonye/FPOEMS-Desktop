@@ -1,0 +1,182 @@
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package DOTheJob;
+
+import DBConnector.MyDbDriverConnector;
+import DOTheJob.ImportDBModel.DBModelForCBT;
+import InsertIntoExportDataBase.InsertIntoExportableDB;
+import RowCounter.RowCounts;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+/**
+ *
+ * @author Martins
+ */
+public class InstructionForCBTImport {
+   
+    static String tablename;
+    static String importedDBname;
+
+    Statement stmt;
+     ResultSet executeQuery ;
+     
+     ResultSet executeQueryFornonTitledRowCBTcourseTitleAndLecturer ;
+     Integer firstrowgetter = 0;
+
+          ObservableList<DBModelForCBT> dbModelForCBT =  FXCollections.observableArrayList();
+          
+          
+        public  InstructionForCBTImport(int empty){
+          
+          }
+
+    public InstructionForCBTImport(){
+    
+     // String countAllPopRowsValues ="select count(*) from "+getTablename()+"where field6 != 'null' and \"field6\" != 'COURSE TITLE / LECTURER'"; // we get the total no of  value
+              String countAllPopRowsValues ="select count(*) from "+getTablename(); // we get the total no of  rows
+
+     int totalnoOfPopRows  =    new RowCounts().presentdbrowcounter(importedDBname, countAllPopRowsValues);
+                           
+        
+       
+   while(true){
+        firstrowgetter++;
+        System.out.println(firstrowgetter);
+        String querrycbt = "select * from "+getTablename()+" where \"field2\" != 'null' and \"field2\" != 'COURSE TITLE / LECTURER' and \"RealRowIdPrimaryKey\" = "+firstrowgetter;
+        
+        MyDbDriverConnector myDbDriverConnector = new  MyDbDriverConnector();
+        myDbDriverConnector.setDatabasename(getImportedDBname());
+      stmt =  myDbDriverConnector.DBDriverStatementLoader();
+        
+      
+        try {
+            executeQuery = stmt.executeQuery(querrycbt);
+            
+            while(executeQuery.next() ){
+            
+                // we check if it is cbt field
+                // and pick only the realRowIdThatIsPrimaryKey
+                String stringSN = executeQuery.getString("field1");
+              Integer realRowIdPrimaryKeyforAllCBT = executeQuery.getInt("RealRowIdPrimaryKey");
+
+
+                if(   (!realRowIdPrimaryKeyforAllCBT.equals("null")) && (stringSN!="null") ){
+                    
+                    
+                
+                  
+                    
+                      
+                       // Am read for Insertion
+
+                      // String stringSN = executeQuery.getString(field1);
+                      String courseTitleLecturer = executeQuery.getString("field2");
+                      
+                     
+                       String courseCode = executeQuery.getString("field5");
+                       String myclass = executeQuery.getString("field7");
+                       String dept = executeQuery.getString("field8");
+                       
+                       String classsize = executeQuery.getString("field10");
+                      String venue = executeQuery.getString("field12");
+                       String time = executeQuery.getString("field15");
+                       String date = executeQuery.getString("field16");
+   
+                       
+                       
+                       
+                       
+                       
+               //not Pop
+                       // i querry for cousseTitile/Lecturer
+                       
+                     Integer realRowIdPrimaryKeyforAllCBTcosTitleAndLecturer = 2+ realRowIdPrimaryKeyforAllCBT;
+                       
+                       String querryCosTitleAndLecturer = "select * from "+getTablename()+" where \"RealRowIdPrimaryKey\"  = "+realRowIdPrimaryKeyforAllCBTcosTitleAndLecturer;
+                       //executeQueryFornonTitledRowCBTcourseTitleAndLecturer
+                       
+                       
+                       
+                  executeQueryFornonTitledRowCBTcourseTitleAndLecturer =  stmt.executeQuery(querryCosTitleAndLecturer);
+                    
+                       while(executeQueryFornonTitledRowCBTcourseTitleAndLecturer.next()){
+                               
+                               
+                               // iget the Cousre Lecturer and break;
+                     String courseLecturer = executeQueryFornonTitledRowCBTcourseTitleAndLecturer.getString("field2");
+
+                     //public DBModelForCBT(Integer realRwoNo, Integer sn, String date, String time, String coursetitle, String courseLecturer, String courseCode, String dept, String classSize, String myclass, String venue, String exammode) {
+
+                       
+                       dbModelForCBT.add(new DBModelForCBT(realRowIdPrimaryKeyforAllCBT, stringSN, date, time, courseTitleLecturer, courseLecturer, courseCode, dept, classsize, myclass, venue, "CBT"));
+                       
+                     // i will do my insertion here
+                     
+                     
+                      // break;
+                       }
+                       
+                       
+                       
+                      
+                       
+                       
+                   
+                       
+                      
+                       
+                       
+                    
+                }
+   
+   
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(InstructionForCBTImport.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if(firstrowgetter ==totalnoOfPopRows){
+        break;
+        }
+    }
+        
+        for(DBModelForCBT cbtmodel : dbModelForCBT){
+ // InsertIntoExportableDB(Integer realidprimarykey, 
+ // String sn , String cosTitleandLecturer ,  String lecturer ,  String coscod , 
+ // String  myclass,  String dept,  String classsize,   String venue , String time ,
+ // String  date,  String exammode){    
+ 
+         InsertIntoExportableDB.setTablename("cbtmodecsv");
+                     //    String timformat = cbtmodel.getTime().replace('�', '-');
+
+        new InsertIntoExportableDB(cbtmodel.getRealRwoNo(),cbtmodel.getSn(),cbtmodel.getCoursetitle(),cbtmodel.getCourseLecturer(),
+        cbtmodel.getCourseCode(),cbtmodel.getMyclass(),cbtmodel.getDept(),cbtmodel.getClassSize(),cbtmodel.getVenue(),cbtmodel.getTime(),cbtmodel.getDate(),cbtmodel.getExammode());
+        }
+        
+    }
+
+    public String getTablename() {
+        return tablename;
+    }
+
+    public void setTablename(String tablename) {
+        this.tablename = tablename;
+    }
+     public String getImportedDBname() {
+        return importedDBname;
+    }
+
+    public void setImportedDBname(String importedDBname) {
+        this.importedDBname = importedDBname;
+    }
+    
+}

@@ -1,0 +1,50 @@
+Button{
+    
+                         -fx-background-radius:10;
+-fx-font-size:20;
+-fx-background-color: blue;
+                                 -fx-text-fill:white;
+
+}
+
+#moreExceptionSettings{
+    
+                         -fx-background-radius:10;
+-fx-font-size:15;
+-fx-background-color: red;
+                                 -fx-text-fill:white;
+
+    
+    
+}
+#autodetectlebel,#manualdetectlebel,#rowdiferentCBT,#dbrowsetting{
+    
+                         -fx-background-radius:5;
+-fx-font-size:15;
+                                 -fx-text-fill:red;
+
+}
+
+
+#rootborderpan{
+    -fx-background-image:url("/images/academic.jpg");
+    -fx-background-repeat:no-repeat;
+    -fx-background-size: cover;
+    
+}
+#vboxofimpordatabase{
+    
+   
+    /*
+ -fx-background-color:gray;
+     -fx-opacity:0.9;
+ */
+
+ 
+}
+
+#titletextfield{
+    
+                                 -fx-text-fill:red;
+
+}

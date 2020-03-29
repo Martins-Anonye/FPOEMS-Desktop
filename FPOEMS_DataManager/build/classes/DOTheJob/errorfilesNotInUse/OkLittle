@@ -1,0 +1,236 @@
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package DOTheJob;
+
+import DBConnector.MyDbDriverConnector;
+import DOTheJob.ImportDBModel.DBModelForCBT;
+import DOTheJob.ImportDBModel.DBModelForPOP;
+import static DOTheJob.InstructionForCBTImport.importedDBname;
+import InsertIntoExportDataBase.InsertIntoExportableDB;
+import RowCounter.RowCounts;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+/**
+ *
+ * @author Martins
+ */
+public class InstructionForPOPImport {
+    
+    // InsertIntoExportableDB
+    
+    static String tablename;
+    static String importedDBname;
+
+  
+
+    Statement stmt;
+     ResultSet executeQuery ;
+          ResultSet executeQueryforVenuSearch ;
+
+       ResultSet executeQueryforSearchingVenueForOtherRowsOrClasses ;
+    ResultSet executeQueryFornonTitledRowPopcourseTitleAndLecturer ;
+    // Integer senseforcbt = 0;
+int noofclassperhallCounter = 0;
+static int totalNoOfClassFromTextField;
+
+    
+      int realRowIdPrimaryKeyforNontitle =1 ;
+        int venusearchrow= 1;
+static Integer realrowidvenue =0;
+ String cosLecturer;
+          ObservableList<DBModelForPOP> dbModelForPop =  FXCollections.observableArrayList();
+          
+          
+          public InstructionForPOPImport(int empty){
+              
+          
+          }
+          
+          
+            public static String getImportedDBname() {
+        return importedDBname;
+    }
+
+    public static void setImportedDBname(String importedDBname) {
+        InstructionForPOPImport.importedDBname = importedDBname;
+    }
+          
+         public InstructionForPOPImport(){
+          
+         
+                      
+                       
+                          
+                           
+                           // POP MODE
+                              String countAllPopRowsValues ="select count(*) from "+getTablename(); // we get the total no of  rows
+
+     int totalnoOfPopRows  =    new RowCounts().presentdbrowcounter(importedDBname, countAllPopRowsValues);
+           
+                           
+                        while(true){   
+                             realRowIdPrimaryKeyforNontitle++;// know when to turn to zero
+                              
+                               if(realRowIdPrimaryKeyforNontitle ==totalnoOfPopRows){
+                       
+                       break;
+                       }
+         
+         
+                       
+                          //  System.out.println(realRowIdPrimaryKeyforNontitle);
+                           
+                          String querryPop =   "select * from "+getTablename()+" where \"field6\" != 'null' and \"field6\" != 'COURSE TITLE / LECTURER' and \"RealRowIdPrimaryKey\"= "+realRowIdPrimaryKeyforNontitle; // we ignore the title and get the value
+                          
+                     //    String countAllPopRowsValues ="select count(*) from "+getTablename()+"where field6 != 'null' and \"field6\" != 'COURSE TITLE / LECTURER'"; // we get the total no of  value
+                   //  int totalnoOfPopRows  =    new RowCounts().presentdbrowcounter(importedDBname, countAllPopRowsValues);
+                           
+                           try {
+                               
+                                 MyDbDriverConnector myDbDriverConnector = new  MyDbDriverConnector();
+                           myDbDriverConnector.setDatabasename(importedDBname);
+                          stmt =  myDbDriverConnector.DBDriverStatementLoader();
+                               executeQuery =  stmt.executeQuery(querryPop);
+                           } catch (SQLException ex) {
+                               Logger.getLogger(InstructionForPOPImport.class.getName()).log(Level.SEVERE, null, ex);
+                           }
+                           try {
+                                
+                               
+                               
+                               while(executeQuery.next()){
+                              Integer realRowIdPrimaryKey  =    executeQuery.getInt("RealRowIdPrimaryKey");
+
+                                   
+                              /// int realRowIdPrimaryKeyforNontitle1 = realRowIdPrimaryKeyforNontitle+(realRowIdPrimaryKey);
+                               
+                               
+                            
+                                      //if(realRowIdPrimaryKeyforNontitle > totalnoOfPopRows){
+                                      //  break;
+                                       //}
+                            
+                               
+                               
+                                         String stringSN = executeQuery.getString("field1");
+                      // String courseTitleLecturer = executeQueryFornonTitledRowCBT.getString(field2);
+                                             String date = executeQuery.getString("field3");
+
+                       String time = executeQuery.getString("field4");
+                                     String costitleandlecturer = executeQuery.getString("field6");
+                                              String cosCode = executeQuery.getString("field9");
+
+                        String dept = executeQuery.getString("field11");
+
+                       String myclass = executeQuery.getString("field13");
+                     String venue = executeQuery.getString("field14");
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                       
+                      Integer realRowIdPrimaryKeynontitlerowcostitleandlect =  2+realRowIdPrimaryKey;
+                       String costitleandlecturerpopbelow = " select * from "+getTablename()+" where \"field6\" != 'null' AND \"RealRowIdPrimaryKey\"  ="+realRowIdPrimaryKeynontitlerowcostitleandlect+" and \"field6\" != 'COURSE TITLE / LECTURER'";
+                       
+                       
+                       executeQueryFornonTitledRowPopcourseTitleAndLecturer= stmt.executeQuery(costitleandlecturerpopbelow);
+                       while(executeQueryFornonTitledRowPopcourseTitleAndLecturer.next()){
+                       
+                            cosLecturer = executeQueryFornonTitledRowPopcourseTitleAndLecturer.getString("field6");
+                           //we get the cos titleandlecturer below the line
+                           
+                            if((dept!="null") && (myclass!="null") ){ 
+                  System.out.println(stringSN+" "+date+"  "+time+"  "+costitleandlecturer+"  "+cosLecturer+" "+cosCode+"  "+dept+" "+myclass+" "+venue);
+
+                     
+                            }
+                       }
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                             if((dept!="null") && (myclass!="null") ){
+                             // that is we detect the row that have value in pop
+                             noofclassperhallCounter++; // note that  if it is one, it means is the first row. that is first class
+                             
+                             }
+                             if(noofclassperhallCounter==totalNoOfClassFromTextField){
+                             
+                             // we resatart it for the next Three classes
+                                                          noofclassperhallCounter=0;
+                                                          realrowidvenue=0;
+
+                             }
+                               
+                             
+                               
+                              
+                               }
+                                   
+                                   
+                                   
+                         
+                           } catch (SQLException ex) {
+                               Logger.getLogger(InstructionForPOPImport.class.getName()).log(Level.SEVERE, null, ex);
+                           }
+                    
+                     ///
+         
+                        }
+         //while true
+         
+         for(DBModelForPOP popmodel:dbModelForPop){
+         
+          InsertIntoExportableDB.setTablename("cbtmodecsv");
+                     //    String timformat = cbtmodel.getTime().replace('�', '-');
+          //System.out.println(stringSN+" "+date+"  "+time+"  "+costitleandlecturer+"    "+cosLecturer +"  "+cosCode+"  "+dept+" "+myclass+" "+venu);
+
+        //new InsertIntoExportableDB(popmodel.getRealRwoNo(),popmodel.getSn(),popmodel.getCoursetitle(),popmodel.getCourseLecturer(),
+        //popmodel.getCourseCode(),popmodel.getMyclass(),popmodel.getDept()," ",popmodel.getVenue(),popmodel.getTime(),popmodel.getDate(),popmodel.getExammode());
+       
+         }
+         
+         }
+          
+
+ public static String getTablename() {
+        return tablename;
+    }
+
+    public static void setTablename(String tablename) {
+        InstructionForPOPImport.tablename = tablename;
+    }
+
+
+    
+    
+    
+    public static int getTotalNoOfClassFromTextField() {
+        return totalNoOfClassFromTextField;
+    }
+
+    public static void setTotalNoOfClassFromTextField(int totalNoOfClassFromTextField) {
+        InstructionForPOPImport.totalNoOfClassFromTextField = totalNoOfClassFromTextField;
+    }
+
+    
+    
+}
